@@ -27,17 +27,6 @@ function headerTemplate() {
 function footerTemplate() {
   return `<div class="footer-top"><div class="footer-brand"><a class="brand brand--footer" href="index.html">${logoMarkup()}</a><p>Temple-inspired fashion jewellery for Indian weddings, festivals, and everyday celebrations.</p></div><div><p class="footer-heading">Shop</p><nav class="footer-links"><a href="collections.html">All jewellery</a><a href="collections.html?category=Temple+Necklaces">Temple necklaces</a><a href="collections.html?category=Chokers">Chokers</a><a href="collections.html?category=Wedding+Edit">Wedding edit</a></nav></div><div><p class="footer-heading">Ruth Jewels</p><nav class="footer-links"><a href="about.html">Our story</a><a href="account.html">Sign in</a><a href="create-account.html">Create account</a><a href="https://www.instagram.com/ruth_jewels_/?hl=en" target="_blank" rel="noopener">Shop on Instagram</a></nav></div></div><div class="footer-bottom"><span>&copy; 2026 Ruth Jewels, India</span><span>Curated for celebrations across India</span></div>`;
 }
-function addInstagramButton() {
-  if (document.querySelector('.instagram-float')) return;
-  const link = document.createElement('a');
-  link.className = 'instagram-float';
-  link.href = 'https://www.instagram.com/ruth_jewels_/?hl=en';
-  link.target = '_blank';
-  link.rel = 'noopener';
-  link.setAttribute('aria-label', 'Message Ruth Jewels on Instagram');
-  link.innerHTML = '<span class="instagram-float__icon" aria-hidden="true">◎</span><span><small>Instagram</small>DM to order</span>';
-  document.body.append(link);
-}
 function productCard(product) {
   return `<article class="product-card reveal"><a class="product-image" href="product.html?id=${product.id}" aria-label="View ${product.name} details"><img src="${product.image}" alt="${product.name}" loading="lazy"><span class="product-tag">${product.tag}</span><span class="image-action">View details</span></a><div class="product-info"><h3><a href="product.html?id=${product.id}">${product.name}</a></h3><span class="product-price">${money(product.price)}</span><p>${product.category}</p><button class="quick-add" type="button" data-quick-add="${product.id}">Add ${product.name} to bag</button></div></article>`;
 }
@@ -66,5 +55,5 @@ function bindInteractions() { document.addEventListener('click', event => { cons
   document.querySelector('[data-account-form]')?.addEventListener('submit', event => { event.preventDefault(); showToast('Secure sign-in will be available when customer accounts launch.'); });
   document.querySelector('[data-create-account-form]')?.addEventListener('submit', event => { event.preventDefault(); showToast('Account form verified. No personal details were stored in this demonstration.'); });
 }
-function init() { document.querySelectorAll('[data-header]').forEach(node => node.innerHTML = headerTemplate()); document.querySelectorAll('[data-footer]').forEach(node => node.innerHTML = footerTemplate()); addInstagramButton(); updateCartCount(); renderHome(); renderCollections(); renderProduct(); renderCart(); renderCheckout(); bindInteractions(); observeReveals(); }
+function init() { document.querySelectorAll('[data-header]').forEach(node => node.innerHTML = headerTemplate()); document.querySelectorAll('[data-footer]').forEach(node => node.innerHTML = footerTemplate()); updateCartCount(); renderHome(); renderCollections(); renderProduct(); renderCart(); renderCheckout(); bindInteractions(); observeReveals(); }
 init();

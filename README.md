@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.1 seconds
-Output:
 # Ruth Jewels â€” Indian luxury storefront
 
 A static, multi-page Ruth Jewels storefront designed for GitHub Pages.

@@ -1,3 +1,6 @@
+Exit code: 0
+Wall time: 0.1 seconds
+Output:
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendEmailVerification, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
@@ -19,6 +22,10 @@ const store = window.RuthJewelsStore;
 const upiConfig = { payeeAddress:'merlinjmerlin97@okicici', payeeName:'Ruth Jewels' };
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+const returnDestination = () => {
+  const returnTo = new URLSearchParams(location.search).get('return');
+  return returnTo && /^[a-z0-9-]+\.html$/i.test(returnTo) ? returnTo : 'account-overview.html';
+};
 const formMessage = (form, message, isError=false) => { let node = form.querySelector('[data-form-message]'); if (!node) { node = document.createElement('p'); node.dataset.formMessage = ''; node.className = 'form-message'; form.append(node); } node.textContent = message; node.classList.toggle('is-error', isError); };
 const friendlyError = error => {
   const messages = {
@@ -37,7 +44,7 @@ async function createAccount(form) {
   const data = new FormData(form);
   const button = form.querySelector('button[type="submit"]');
   button.disabled = true;
-  formMessage(form, 'Creating your secure account…');
+  formMessage(form, 'Creating your secure accountâ€¦');
   try {
     const credential = await createUserWithEmailAndPassword(auth, data.get('email').trim(), data.get('password'));
     const fullName = `${data.get('firstName').trim()} ${data.get('lastName').trim()}`.trim();
@@ -56,10 +63,10 @@ async function createAccount(form) {
       });
     } catch (profileError) {
       formMessage(form, 'Your account was created, but the customer profile could not be saved until Firestore rules are published.', true);
-      setTimeout(() => { location.href = 'account-overview.html'; }, 1800);
+      setTimeout(() => { location.href = returnDestination(); }, 1800);
       return;
     }
-    location.href = 'account-overview.html';
+    location.href = returnDestination();
   } catch (error) {
     formMessage(form, friendlyError(error), true);
     button.disabled = false;
@@ -70,13 +77,43 @@ async function signInAccount(form) {
   const data = new FormData(form);
   const button = form.querySelector('button[type="submit"]');
   button.disabled = true;
-  formMessage(form, 'Signing you in…');
+  formMessage(form, 'Signing you inâ€¦');
   try {
     await signInWithEmailAndPassword(auth, data.get('email').trim(), data.get('password'));
-    location.href = 'account-overview.html';
+    location.href = returnDestination();
   } catch (error) {
     formMessage(form, friendlyError(error), true);
     button.disabled = false;
+  }
+}
+
+async function loadPublishedProducts() {
+  try {
+    const snapshot = await getDocs(query(collection(db, 'products'), where('status', '==', 'published')));
+    const liveProducts = snapshot.docs.map(product => ({ id:product.id, ...product.data() }));
+    if (liveProducts.length) store?.replaceProducts(liveProducts);
+  } catch (error) {
+    // The curated local collection remains visible until Firestore rules and products are configured.
+  }
+}
+
+async function loadActiveCampaign() {
+  const root = document.querySelector('[data-live-campaign]');
+  if (!root) return;
+  try {
+    const snapshot = await getDocs(query(collection(db, 'campaigns'), where('status', '==', 'active')));
+    const now = Date.now();
+    const campaign = snapshot.docs.map(item => ({ id:item.id, ...item.data() })).find(item => {
+      const start = item.startsAt ? new Date(item.startsAt).getTime() : -Infinity;
+      const end = item.endsAt ? new Date(`${item.endsAt}T23:59:59`).getTime() : Infinity;
+      return start <= now && now <= end;
+    });
+    if (!campaign) return;
+    const destination = /^[a-z0-9-]+\.html(\?.*)?$/i.test(campaign.link || '') ? campaign.link : 'collections.html';
+    root.innerHTML = `<div><p class="eyebrow">${escapeHtml(campaign.label || 'Ruth Jewels event')}</p><h2>${escapeHtml(campaign.title || 'A special Ruth edit')}</h2><p>${escapeHtml(campaign.message || '')}</p></div><a class="button button--secondary" href="${escapeHtml(destination)}">${escapeHtml(campaign.cta || 'Explore now')}</a>`;
+    root.hidden = false;
+  } catch (error) {
+    // A campaign is optional. The storefront remains fully usable when no campaign is active.
   }
 }
 
@@ -95,7 +132,7 @@ function renderUpiPayment(user) {
   if (!root) return;
   const total = store?.cartTotal() || 0;
   if (!user) {
-    root.innerHTML = '<div class="payment-gate"><h3>Sign in before payment</h3><p>Your account securely connects this payment reference to your order.</p><a class="button button--primary" href="account.html?return=checkout.html">Sign in to continue</a><a class="text-link" href="create-account.html?return=checkout.html">Create an account →</a></div>';
+    root.innerHTML = '<div class="payment-gate"><h3>Sign in before payment</h3><p>Your account securely connects this payment reference to your order.</p><a class="button button--primary" href="account.html?return=checkout.html">Sign in to continue</a><a class="text-link" href="create-account.html?return=checkout.html">Create an account â†’</a></div>';
     if (submit) submit.disabled = true;
     return;
   }
@@ -122,7 +159,7 @@ async function submitOrder(form, user) {
   if (transactionReference.length < 8) { formMessage(form, 'Enter the UPI transaction/reference number shown by your payment app.', true); return; }
   const button = form.querySelector('[data-checkout-submit]');
   button.disabled = true;
-  formMessage(form, 'Saving your order for payment verification…');
+  formMessage(form, 'Saving your order for payment verificationâ€¦');
   try {
     const items = cart.map(item => { const product = store.findProduct(item.id); return { productId:item.id, name:product?.name || item.id, quantity:item.quantity, unitPrice:product?.price || 0, lineTotal:(product?.price || 0) * item.quantity }; });
     const order = {
@@ -164,7 +201,7 @@ async function renderAccountOverview(user) {
     const profile = profileSnapshot.exists() ? profileSnapshot.data() : {};
     const orderSnapshot = await getDocs(query(collection(db, 'orders'), where('userId', '==', user.uid)));
     const orders = orderSnapshot.docs.map(order => ({ id:order.id, ...order.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-    root.innerHTML = `<section class="overview-heading"><div><p class="eyebrow">Ruth Jewels account</p><h1>Welcome, ${escapeHtml(profile.firstName || user.displayName?.split(' ')[0] || 'there')}.</h1><p>${escapeHtml(user.email)}</p></div><button class="button button--secondary" type="button" data-sign-out>Sign out</button></section><section class="overview-grid"><article><span>01</span><h2>Your profile</h2><p>${escapeHtml(profile.fullName || user.displayName || '')}</p><p>${escapeHtml(profile.mobile || 'Mobile number not added')}</p></article><article><span>02</span><h2>Shopping bag</h2><p>${store?.getCart().reduce((sum,item)=>sum+item.quantity,0) || 0} pieces currently selected</p><a class="text-link" href="cart.html">View shopping bag →</a></article><article><span>03</span><h2>Order history</h2><p>${orders.length} ${orders.length === 1 ? 'order' : 'orders'} recorded</p></article></section><section class="order-history"><div class="section-heading"><div><p class="eyebrow">Your orders</p><h2>Order history</h2></div><a class="button button--primary" href="collections.html">Continue shopping</a></div>${orders.length ? orders.map(order => `<article class="order-record"><div><span>${escapeHtml(order.orderReference || order.id)}</span><h3>${escapeHtml(order.status || 'Order received').replaceAll('_',' ')}</h3></div><strong>${store.money(order.total || 0)}</strong><p>${order.items?.map(item => `${item.quantity} × ${escapeHtml(item.name)}`).join(', ') || ''}</p></article>`).join('') : '<div class="empty-state"><h3>No orders yet.</h3><p>Your completed checkout requests will appear here.</p></div>'}</section>`;
+    root.innerHTML = `<section class="overview-heading"><div><p class="eyebrow">Ruth Jewels account</p><h1>Welcome, ${escapeHtml(profile.firstName || user.displayName?.split(' ')[0] || 'there')}.</h1><p>${escapeHtml(user.email)}</p></div><button class="button button--secondary" type="button" data-sign-out>Sign out</button></section><section class="overview-grid"><article><span>01</span><h2>Your profile</h2><p>${escapeHtml(profile.fullName || user.displayName || '')}</p><p>${escapeHtml(profile.mobile || 'Mobile number not added')}</p></article><article><span>02</span><h2>Shopping bag</h2><p>${store?.getCart().reduce((sum,item)=>sum+item.quantity,0) || 0} pieces currently selected</p><a class="text-link" href="cart.html">View shopping bag â†’</a></article><article><span>03</span><h2>Order history</h2><p>${orders.length} ${orders.length === 1 ? 'order' : 'orders'} recorded</p></article></section><section class="order-history"><div class="section-heading"><div><p class="eyebrow">Your orders</p><h2>Order history</h2></div><a class="button button--primary" href="collections.html">Continue shopping</a></div>${orders.length ? orders.map(order => `<article class="order-record"><div><span>${escapeHtml(order.orderReference || order.id)}</span><h3>${escapeHtml(order.status || 'Order received').replaceAll('_',' ')}</h3></div><strong>${store.money(order.total || 0)}</strong><p>${order.items?.map(item => `${item.quantity} Ã— ${escapeHtml(item.name)}`).join(', ') || ''}</p></article>`).join('') : '<div class="empty-state"><h3>No orders yet.</h3><p>Your completed checkout requests will appear here.</p></div>'}</section>`;
     root.querySelector('[data-sign-out]')?.addEventListener('click', async () => { await signOut(auth); location.href='account.html'; });
   } catch (error) {
     root.innerHTML = `<div class="account-empty"><h1>Account setup needs attention.</h1><p>${escapeHtml(friendlyError(error))}</p></div>`;
@@ -173,6 +210,9 @@ async function renderAccountOverview(user) {
 
 document.querySelector('[data-create-account-form]')?.addEventListener('submit', event => { event.preventDefault(); createAccount(event.currentTarget); });
 document.querySelector('[data-account-form]')?.addEventListener('submit', event => { event.preventDefault(); signInAccount(event.currentTarget); });
+
+loadPublishedProducts();
+loadActiveCampaign();
 
 onAuthStateChanged(auth, user => {
   renderAccountOverview(user);
@@ -184,3 +224,6 @@ onAuthStateChanged(auth, user => {
     checkoutForm.onsubmit = event => { event.preventDefault(); submitOrder(checkoutForm, user); };
   }
 });
+
+export { app, auth, db, escapeHtml, friendlyError };
+

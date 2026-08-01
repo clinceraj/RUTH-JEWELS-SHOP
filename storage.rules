@@ -3,7 +3,7 @@ service firebase.storage {
   match /b/{bucket}/o {
     function isOwner() {
       return request.auth != null
-        && firestore.exists(/databases/(default)/documents/owners/$(request.auth.uid));
+        && firestore.exists(/databases/(default)/documents/Owners/$(request.auth.uid));
     }
 
     match /products/{allPaths=**} {

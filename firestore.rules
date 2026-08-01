@@ -1,12 +1,35 @@
+Exit code: 0
+Wall time: 0.1 seconds
+Output:
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
+    function signedIn() { return request.auth != null; }
+    function isOwner() {
+      return signedIn() && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
-
     function ownsUserDocument(userId) {
       return signedIn() && request.auth.uid == userId;
+    }
+
+    match /owners/{ownerId} {
+      allow read: if signedIn() && request.auth.uid == ownerId;
+      allow write: if false;
+    }
+
+    match /products/{productId} {
+      allow read: if resource.data.status == 'published' || isOwner();
+      allow create, update, delete: if isOwner();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if resource.data.status == 'active' || isOwner();
+      allow create, update, delete: if isOwner();
+    }
+
+    match /campaigns/{campaignId} {
+      allow read: if resource.data.status == 'active' || isOwner();
+      allow create, update, delete: if isOwner();
     }
 
     match /users/{userId} {
@@ -26,8 +49,9 @@ service cloud.firestore {
         && request.resource.data.status == 'payment_verification_pending'
         && request.resource.data.payment.method == 'UPI'
         && request.resource.data.payment.status == 'pending_verification';
-      allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
+      allow read: if isOwner() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isOwner();
     }
   }
 }
+

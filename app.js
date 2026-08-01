@@ -18,7 +18,7 @@ const findProduct = id => products.find(product => product.id === id);
 const page = location.pathname.split('/').pop() || 'index.html';
 
 function logoMarkup() {
-  return '<span class="brand-emblem"><img src="assets/ruth-jewels-logo.jpg" alt=""></span><span class="brand-name">Ruth <small>Jewels</small></span>';
+  return '<span class="brand-emblem"><img src="assets/ruth-jewels-logo-v2.jpg" alt=""></span><span class="brand-name">Ruth <small>Jewels</small></span>';
 }
 function headerTemplate() {
   const active = name => page === name ? 'is-current' : '';

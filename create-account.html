@@ -11,17 +11,18 @@
         <h1>Create your account.</h1>
         <p>Be ready to save favourite pieces, follow orders, and move through checkout more quickly.</p>
         <form data-create-account-form>
-          <div class="form-row"><label>First name<input type="text" autocomplete="given-name" required placeholder="First name"></label><label>Last name<input type="text" autocomplete="family-name" required placeholder="Last name"></label></div>
-          <label>Email address<input type="email" autocomplete="email" required placeholder="you@example.com"></label>
-          <label>Indian mobile number<input type="tel" autocomplete="tel" required placeholder="+91 98765 43210"></label>
-          <label>Create password<input type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></label>
-          <p class="form-security">Your details are not stored by this demonstration. Account creation will activate only after a secure authentication service is connected.</p>
-          <button class="button button--primary" type="submit">Preview account creation</button>
+          <div class="form-row"><label>First name<input name="firstName" type="text" autocomplete="given-name" required placeholder="First name"></label><label>Last name<input name="lastName" type="text" autocomplete="family-name" required placeholder="Last name"></label></div>
+          <label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+          <label>Indian mobile number<input name="mobile" type="tel" autocomplete="tel" required pattern="[+0-9 ()-]{10,18}" placeholder="+91 98765 43210"></label>
+          <label>Create password<input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></label>
+          <p class="form-security">Your account is protected by Firebase Authentication. Ruth Jewels never sees or stores your password.</p>
+          <button class="button button--primary" type="submit">Create my Ruth Jewels account</button>
         </form>
         <p class="form-switch">Already registered? <a href="account.html">Return to sign in</a></p>
       </section>
     </main>
     <footer data-footer></footer>
     <script src="app.js"></script>
+    <script type="module" src="firebase-client.js"></script>
   </body>
 </html>

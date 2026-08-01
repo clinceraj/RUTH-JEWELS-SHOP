@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.1 seconds
-Output:
 # Ruth Jewels owner dashboard setup
 
 The public shop remains on GitHub Pages. Firebase stores your products, images, campaigns, and orders. The owner dashboard is at `admin.html` and is intentionally not linked in the public navigation.

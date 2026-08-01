@@ -20,4 +20,4 @@ The cart, account and checkout are visual/browser demonstrations only. They use 
 In the repository: **Settings → Pages → Build and deployment → Source → Deploy from a branch**, then choose `main` and `/(root)`.
 
 The product images currently load from the original public `clinceraj/ruth-jewels-1` repository. Copy those assets into this repository before making the original repository private or deleting it.
-
+Website refreshed

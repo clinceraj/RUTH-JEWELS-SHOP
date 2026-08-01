@@ -6,7 +6,7 @@ The public shop remains on GitHub Pages. Firebase stores your products, images, 
 
 1. In Firebase Authentication, create or sign in to your own Ruth Jewels account through the website.
 2. In Firebase Authentication > Users, copy that account's UID.
-3. In Firestore Database > Data, create the collection `owners`.
+3. In Firestore Database > Data, create the collection `Owners`.
 4. Create one document whose document ID is exactly your UID. Add a simple field such as `email` with your owner email address.
 5. Install the Firebase CLI, sign in, select the `jewels-by-ruth` project, then deploy the included rules:
 
@@ -15,7 +15,7 @@ The public shop remains on GitHub Pages. Firebase stores your products, images, 
    ```
 
 6. Enable Cloud Storage in Firebase before uploading images. It requires Firebase's pay-as-you-go setup.
-7. Sign in at `admin.html`. Only a UID listed in the private `owners` collection can write products, images, campaigns, or order states.
+7. Sign in at `admin.html`. Only a UID listed in the private `Owners` collection can write products, images, campaigns, or order states.
 
 ## Daily use
 

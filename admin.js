@@ -18,7 +18,7 @@ function loginTemplate() {
 }
 
 function setupTemplate(user, message='') {
-  return `<section class="admin-gate admin-gate--setup"><p class="eyebrow">One-time security step</p><h1>Approve this owner account.</h1><p>Sign-in worked. Add this UID as a document ID in the private <code>owners</code> Firestore collection, then deploy the included security rules. This ensures nobody else can manage your shop.</p><div class="owner-uid"><span>Your UID</span><code>${escapeHtml(user.uid)}</code><button class="button button--secondary" type="button" data-copy-uid>Copy UID</button></div>${message ? `<p class="form-message is-error">${escapeHtml(message)}</p>` : ''}<p class="admin-help">The exact one-time steps are in <a class="text-link" href="OWNER_SETUP.md" target="_blank" rel="noopener">OWNER_SETUP.md</a>.</p><button class="button button--primary" type="button" data-recheck-owner>I've completed the setup</button><button class="text-button" type="button" data-owner-sign-out>Sign out</button></section>`;
+  return `<section class="admin-gate admin-gate--setup"><p class="eyebrow">One-time security step</p><h1>Approve this owner account.</h1><p>Sign-in worked. Add this UID as a document ID in the private <code>Owners</code> Firestore collection, then deploy the included security rules. This ensures nobody else can manage your shop.</p><div class="owner-uid"><span>Your UID</span><code>${escapeHtml(user.uid)}</code><button class="button button--secondary" type="button" data-copy-uid>Copy UID</button></div>${message ? `<p class="form-message is-error">${escapeHtml(message)}</p>` : ''}<p class="admin-help">The exact one-time steps are in <a class="text-link" href="OWNER_SETUP.md" target="_blank" rel="noopener">OWNER_SETUP.md</a>.</p><button class="button button--primary" type="button" data-recheck-owner>I've completed the setup</button><button class="text-button" type="button" data-owner-sign-out>Sign out</button></section>`;
 }
 
 function dashboardTemplate() {
@@ -169,7 +169,7 @@ async function renderForUser(user) {
   state.user = user;
   if (!user) { root.innerHTML = loginTemplate(); return; }
   try {
-    const owner = await getDoc(doc(db, 'owners', user.uid));
+    const owner = await getDoc(doc(db, 'Owners', user.uid));
     if (!owner.exists()) { root.innerHTML = setupTemplate(user); return; }
     await refreshDashboard();
   } catch (error) {

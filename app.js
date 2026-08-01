@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.1 seconds
-Output:
 let products = [
   { id:'attigai-classic', name:'The Attigai', category:'Temple Necklaces', price:1850, image:'https://raw.githubusercontent.com/clinceraj/ruth-jewels-1/main/ATTIGAI-01.jpeg', tag:'Signature', description:'A regal collar necklace with a rich, temple-inspired silhouette, chosen to take centre stage at every celebration.', finish:'Antique-tone finish', styling:'Pair with silk sarees and high necklines.' },
   { id:'attigai-emerald', name:'Emerald Attigai', category:'Temple Necklaces', price:2100, image:'https://raw.githubusercontent.com/clinceraj/ruth-jewels-1/main/ATTIGAI-04.png', tag:'New arrival', description:'Our classic Attigai, brightened by emerald-green detailing for a considered burst of colour.', finish:'Emerald-tone detailing', styling:'Style with jewel tones for a polished look.' },

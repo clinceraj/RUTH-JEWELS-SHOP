@@ -11,11 +11,12 @@
     const button = installButton();
     if (!button) return;
     if (isStandalone()) {
-      button.hidden = true;
+      if (!button.hidden) button.hidden = true;
       return;
     }
-    button.hidden = false;
-    button.textContent = isIos ? 'Add to home screen' : 'Install app';
+    if (button.hidden) button.hidden = false;
+    const label = isIos ? 'Add to home screen' : 'Install app';
+    if (button.textContent !== label) button.textContent = label;
   }
 
   async function installOwnerApp() {

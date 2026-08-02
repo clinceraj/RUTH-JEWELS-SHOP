@@ -6,8 +6,8 @@
   "start_url": "./admin.html?source=app",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#130d0e",
-  "theme_color": "#130d0e",
+  "background_color": "#351329",
+  "theme_color": "#351329",
   "icons": [
     {
       "src": "assets/ruth-jewels-favicon-v2.png",

@@ -31,7 +31,17 @@ service cloud.firestore {
 
 
     match /siteContent/{pageId} {
-      allow read: if pageId == 'home' || pageId == 'checkout';
+      allow read: if isOwner() || pageId in [
+        'home',
+        'collections',
+        'product',
+        'cart',
+        'checkout',
+        'account',
+        'create-account',
+        'account-overview',
+        'about'
+      ];
       allow create, update, delete: if isOwner();
     }
 

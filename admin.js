@@ -5,7 +5,7 @@ import { auth, db, escapeHtml } from './firebase-client.js';
 
 const root = document.querySelector('[data-admin-root]');
 const storage = getStorage();
-const state = { user:null, products:[], categories:[], campaigns:[], orders:[], siteContent:{ home:{}, checkout:{} }, dashboardView:'overview', editingProductId:null, existingImages:[] };
+const state = { user:null, products:[], categories:[], campaigns:[], orders:[], siteContent:{}, dashboardView:'overview', editingProductId:null, existingImages:[] };
 
 const titleCase = value => String(value || '').replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 const money = value => new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(Number(value || 0));
@@ -31,6 +31,30 @@ const pageContentDefaults = {
     captionLinkLabel:'View the collection',
     captionLink:'collections.html'
   },
+  collections: {
+    eyebrow:'Shop Ruth Jewels',
+    title:'Jewellery for every celebration.',
+    intro:'Explore temple-inspired necklaces, statement chokers, and wedding-ready designs, all clearly priced in Indian rupees.'
+  },
+  product: {
+    allLabel:'All jewellery',
+    taxNote:'Inclusive of applicable taxes',
+    presentationLabel:'Presentation',
+    presentationValue:'Gift-ready Ruth packaging',
+    deliveryLabel:'Delivery',
+    deliveryValue:'Available across India',
+    addLabel:'Add to shopping bag',
+    browseLabel:'Continue browsing jewellery'
+  },
+  cart: {
+    eyebrow:'Your selection',
+    title:'Shopping bag',
+    emptyTitle:'Your shopping bag is waiting.',
+    emptyCopy:'Explore statement pieces for weddings, festivals, and thoughtful gifting.',
+    browseLabel:'Shop all jewellery',
+    summaryTitle:'Order summary',
+    checkoutLabel:'Proceed to secure checkout'
+  },
   checkout: {
     announcement:'Gift-ready packaging · Delivery across India · Wedding and festive edits',
     eyebrow:'Secure checkout',
@@ -39,8 +63,63 @@ const pageContentDefaults = {
     paymentTitle:'UPI payment',
     paymentNote:'The QR contains your exact shopping-bag total and a unique Ruth Jewels order reference. Payment is confirmed only after manual verification.',
     submitLabel:'Submit order for payment verification'
+  },
+  account: {
+    eyebrow:'Ruth Jewels account',
+    title:'Welcome back.',
+    intro:'Sign in to review your orders, payment-verification status and account details.',
+    submitLabel:'Sign in to your account',
+    switchText:'New to Ruth Jewels?',
+    switchLabel:'Create your account'
+  },
+  'create-account': {
+    eyebrow:'Join Ruth Jewels',
+    title:'Create your account.',
+    intro:'Be ready to save favourite pieces, follow orders, and move through checkout more quickly.',
+    submitLabel:'Create my Ruth Jewels account',
+    switchText:'Already registered?',
+    switchLabel:'Return to sign in'
+  },
+  'account-overview': {
+    eyebrow:'Ruth Jewels account',
+    welcomePrefix:'Welcome,',
+    orderHeading:'Order history',
+    orderAction:'Continue shopping',
+    emptyTitle:'No orders yet.',
+    emptyCopy:'Your completed checkout requests will appear here.'
+  },
+  about: {
+    eyebrow:'Our story',
+    title:'Adornment is a language of joy.',
+    storyEyebrow:'The Ruth point of view',
+    storyTitle:'Indian tradition, styled for the way we celebrate now.',
+    storyOne:'Ruth Jewels curates fashion jewellery inspired by the visual richness of South Indian adornment. The collection is designed to make shopping for weddings, festivals, family occasions, and gifting feel clear and enjoyable.',
+    storyTwo:'Every design is selected for its detail, presence, and styling potential across sarees, lehengas, salwar sets, and contemporary festive wardrobes.',
+    ctaLabel:'Shop the complete collection',
+    ctaLink:'collections.html'
   }
 };
+
+const pageStudio = [
+  { view:'collections-page', page:'collections', nav:'Collections', eyebrow:'Collections editor', title:'Set the catalogue mood.', summary:'Edit the invitation customers see before they begin browsing.', preview:'collections.html' },
+  { view:'product-page', page:'product', nav:'Product detail', eyebrow:'Product page editor', title:'Keep every product page clear.', summary:'Set the customer-facing labels around your product details and shopping action.', preview:'product.html' },
+  { view:'cart-page', page:'cart', nav:'Shopping bag', eyebrow:'Bag page editor', title:'Make the bag feel considered.', summary:'Guide customers from their selection to a confident checkout.', preview:'cart.html' },
+  { view:'checkout-page', page:'checkout', nav:'Checkout', eyebrow:'Checkout page editor', title:'Keep checkout clear.', summary:'Edit the customer-facing headings and payment guidance without changing secure order fields.', preview:'checkout.html' },
+  { view:'account-page', page:'account', nav:'Sign in', eyebrow:'Sign-in page editor', title:'Welcome customers warmly.', summary:'Edit the account introduction and the language around secure sign-in.', preview:'account.html' },
+  { view:'create-account-page', page:'create-account', nav:'Create account', eyebrow:'Create-account editor', title:'Make joining feel simple.', summary:'Set the introduction and clear actions for new customer accounts.', preview:'create-account.html' },
+  { view:'account-overview-page', page:'account-overview', nav:'Account overview', eyebrow:'Account overview editor', title:'Make returning feel personal.', summary:'Set the account labels customers see after they have signed in.', preview:'account-overview.html' },
+  { view:'about-page', page:'about', nav:'Our story', eyebrow:'Our-story editor', title:'Tell your story with clarity.', summary:'Shape the brand story and the invitation back to the collection.', preview:'about.html' }
+];
+
+const fieldLabels = {
+  allLabel:'Breadcrumb label', taxNote:'Tax note', presentationLabel:'Presentation label', presentationValue:'Presentation value',
+  deliveryLabel:'Delivery label', deliveryValue:'Delivery value', addLabel:'Add-to-bag label', browseLabel:'Browse button label',
+  emptyTitle:'Empty-bag heading', emptyCopy:'Empty-bag message', summaryTitle:'Summary heading', checkoutLabel:'Checkout button label',
+  submitLabel:'Primary button label', switchText:'Supporting account text', switchLabel:'Account link label',
+  welcomePrefix:'Welcome heading prefix', orderHeading:'Order-history heading', orderAction:'Shopping button label',
+  storyEyebrow:'Story label', storyTitle:'Story heading', storyOne:'Story paragraph one', storyTwo:'Story paragraph two', ctaLabel:'Story button label', ctaLink:'Story button link'
+};
+const longCopyFields = new Set(['intro','emptyCopy','paymentNote','storyOne','storyTwo']);
 
 const pageLink = (value, fallback) => /^[a-z0-9-]+\.html(?:\?[a-zA-Z0-9%&=+_.-]+)?$/i.test(String(value || '')) ? value : fallback;
 const editorInput = (label, name, value, placeholder='') => '<label>' + label + '<input name="' + name + '" required value="' + escapeHtml(value || '') + '" placeholder="' + escapeHtml(placeholder) + '"></label>';
@@ -90,11 +169,29 @@ function checkoutEditorTemplate() {
     '<div class="admin-form-actions"><button class="button button--primary" type="submit">Save checkout changes</button><a class="button button--secondary" href="checkout.html" target="_blank" rel="noopener">Preview checkout page</a></div><p data-checkout-message class="form-message" hidden></p></form></section>';
 }
 
+function pageEditorTemplate(config) {
+  const defaults = pageContentDefaults[config.page];
+  const copy = { ...defaults, ...(state.siteContent[config.page] || {}) };
+  const fields = Object.keys(defaults).map(key => {
+    const label = fieldLabels[key] || titleCase(key);
+    const placeholder = defaults[key];
+    return longCopyFields.has(key) ? editorTextArea(label, key, copy[key], placeholder) : editorInput(label, key, copy[key], placeholder);
+  }).join('');
+  return '<section class="admin-section admin-page-editor" id="' + config.view + '"><div class="section-heading"><div><p class="eyebrow">' + config.eyebrow + '</p><h2>' + config.title + '</h2></div><p>' + config.summary + '</p></div><form class="admin-form" data-page-content-form data-page="' + config.page + '">' + fields + '<div class="admin-form-actions"><button class="button button--primary" type="submit" data-restore-label="Save ' + escapeHtml(config.nav.toLowerCase()) + ' changes">Save ' + escapeHtml(config.nav.toLowerCase()) + ' changes</button><a class="button button--secondary" href="' + config.preview + '" target="_blank" rel="noopener">Preview page</a></div><p data-' + config.page + '-message class="form-message" hidden></p></form></section>';
+}
+
 function setDashboardView(view) {
-  const validViews = ['overview', 'products', 'categories', 'campaigns', 'orders', 'home-page', 'checkout-page'];
+  const validViews = ['overview', 'products', 'categories', 'campaigns', 'orders', 'home-page', ...pageStudio.map(item => item.view)];
   const selected = validViews.includes(view) ? view : 'overview';
   state.dashboardView = selected;
-  root.querySelectorAll('[data-dashboard-panel]').forEach(panel => { panel.hidden = panel.dataset.dashboardPanel !== selected; });
+  root.querySelectorAll('[data-dashboard-panel]').forEach(panel => {
+    const isSelected = panel.dataset.dashboardPanel === selected;
+    panel.hidden = !isSelected;
+    if (isSelected) {
+      panel.classList.remove('is-revealing');
+      requestAnimationFrame(() => panel.classList.add('is-revealing'));
+    }
+  });
   root.querySelectorAll('[data-dashboard-view]').forEach(button => {
     const isActive = button.dataset.dashboardView === selected;
     button.classList.toggle('is-active', isActive);
@@ -102,14 +199,23 @@ function setDashboardView(view) {
   });
 }
 
+function sidebarMarkup() {
+  const pageButtons = [
+    '<div class="admin-nav-group"><span>Store</span><button type="button" data-dashboard-view="overview">Overview</button><button type="button" data-dashboard-view="products">Products</button><button type="button" data-dashboard-view="categories">Categories</button><button type="button" data-dashboard-view="campaigns">Events &amp; offers</button><button type="button" data-dashboard-view="orders">Orders</button></div>',
+    '<div class="admin-nav-group"><span>Page editor</span><button type="button" data-dashboard-view="home-page">Home page</button>' + pageStudio.map(item => '<button type="button" data-dashboard-view="' + item.view + '">' + item.nav + '</button>').join('') + '</div>'
+  ].join('');
+  return '<div class="admin-sidebar-brand"><p class="eyebrow">Owner studio</p><strong>Ruth <small>Jewels</small></strong><p class="admin-sidebar-status"><i></i> Store controls ready</p></div><nav aria-label="Owner dashboard sections">' + pageButtons + '</nav><div class="admin-sidebar-preview"><span>Customer view</span><a href="index.html" target="_blank" rel="noopener">Open the shop</a></div>';
+}
+
 function decorateDashboard() {
   const heading = root.querySelector('.admin-heading');
   if (!heading || root.querySelector('.admin-workspace')) return;
+  document.body.classList.add('admin-ready');
   const workspace = document.createElement('div');
   workspace.className = 'admin-workspace';
   const sidebar = document.createElement('aside');
   sidebar.className = 'admin-sidebar';
-  sidebar.innerHTML = '<p class="eyebrow">Owner studio</p><strong>Ruth <small>Jewels</small></strong><nav aria-label="Owner dashboard sections"><button type="button" data-dashboard-view="overview">Overview</button><button type="button" data-dashboard-view="products">Products</button><button type="button" data-dashboard-view="categories">Categories</button><button type="button" data-dashboard-view="campaigns">Events &amp; offers</button><button type="button" data-dashboard-view="orders">Orders</button><button type="button" data-dashboard-view="home-page">Edit home page</button><button type="button" data-dashboard-view="checkout-page">Edit checkout</button></nav><div class="admin-sidebar-preview"><span>Customer view</span><a href="index.html" target="_blank" rel="noopener">Home page</a><a href="collections.html" target="_blank" rel="noopener">Collections</a><a href="checkout.html" target="_blank" rel="noopener">Checkout</a></div>';
+  sidebar.innerHTML = sidebarMarkup();
   const main = document.createElement('div');
   main.className = 'admin-main';
   [...root.children].forEach(node => main.append(node));
@@ -117,7 +223,10 @@ function decorateDashboard() {
   const overviewHeading = main.querySelector('.admin-heading');
   if (overviewHeading) overviewHeading.id = 'overview';
   const orders = main.querySelector('#orders');
-  if (orders) orders.insertAdjacentHTML('beforebegin', homeEditorTemplate() + checkoutEditorTemplate());
+  if (orders) {
+    const editors = [homeEditorTemplate(), ...pageStudio.filter(item => item.page !== 'checkout').map(pageEditorTemplate), checkoutEditorTemplate()];
+    orders.insertAdjacentHTML('beforebegin', editors.join(''));
+  }
   const panels = {
     overview:[overviewHeading, main.querySelector('.admin-stats')],
     products:[main.querySelector('#products')],
@@ -127,6 +236,7 @@ function decorateDashboard() {
     'home-page':[main.querySelector('#home-page')],
     'checkout-page':[main.querySelector('#checkout-page')]
   };
+  pageStudio.forEach(item => { panels[item.view] = [main.querySelector('#' + item.view)]; });
   Object.entries(panels).forEach(([name, nodes]) => nodes.filter(Boolean).forEach(node => node.dataset.dashboardPanel = name));
   workspace.append(sidebar, main);
   root.append(workspace);
@@ -139,6 +249,7 @@ async function submitPageContent(form) {
   if (!defaults) return;
   const data = new FormData(form);
   const button = form.querySelector('button[type="submit"]');
+  const restoreLabel = button.dataset.restoreLabel || (page === 'home' ? 'Save home page changes' : page === 'checkout' ? 'Save checkout changes' : 'Save page changes');
   const payload = {};
   Object.keys(defaults).forEach(key => { payload[key] = String(data.get(key) || '').trim() || defaults[key]; });
   Object.keys(payload).filter(key => key.toLowerCase().includes('link')).forEach(key => { payload[key] = pageLink(payload[key], defaults[key]); });
@@ -147,12 +258,11 @@ async function submitPageContent(form) {
   try {
     await setDoc(doc(db, 'siteContent', page), { ...payload, updatedAt:serverTimestamp() }, { merge:true });
     state.siteContent[page] = payload;
-    message('[data-' + page + '-message]', 'Saved. Refresh the customer page to see your live changes.');
-    button.textContent = page === 'home' ? 'Save home page changes' : 'Save checkout changes';
-    button.disabled = false;
+    message('[data-' + page + '-message]', 'Saved. Use Preview page to see the live customer copy.');
   } catch (error) {
     message('[data-' + page + '-message]', error.message || 'The page changes could not be saved. Publish the latest Firestore rules, then try again.', true);
-    button.textContent = page === 'home' ? 'Save home page changes' : 'Save checkout changes';
+  } finally {
+    button.textContent = restoreLabel;
     button.disabled = false;
   }
 }
@@ -202,22 +312,19 @@ async function uploadImages(files, productName) {
 }
 
 async function refreshDashboard() {
-  const [products, categories, campaigns, orders, homeContent, checkoutContent] = await Promise.all([
+  const pageIds = Object.keys(pageContentDefaults);
+  const [products, categories, campaigns, orders, ...contentResults] = await Promise.all([
     getDocs(collection(db, 'products')),
     getDocs(collection(db, 'categories')),
     getDocs(collection(db, 'campaigns')),
     getDocs(collection(db, 'orders')),
-    getDoc(doc(db, 'siteContent', 'home')).catch(() => null),
-    getDoc(doc(db, 'siteContent', 'checkout')).catch(() => null)
+    ...pageIds.map(page => getDoc(doc(db, 'siteContent', page)).catch(() => null))
   ]);
   state.products = products.docs.map(item => ({ id:item.id, ...item.data() }));
   state.categories = categories.docs.map(item => ({ id:item.id, ...item.data() }));
   state.campaigns = campaigns.docs.map(item => ({ id:item.id, ...item.data() }));
   state.orders = orders.docs.map(item => ({ id:item.id, ...item.data() }));
-  state.siteContent = {
-    home:homeContent?.exists() ? homeContent.data() : {},
-    checkout:checkoutContent?.exists() ? checkoutContent.data() : {}
-  };
+  state.siteContent = Object.fromEntries(pageIds.map((page, index) => [page, contentResults[index]?.exists() ? contentResults[index].data() : {}]));
   root.innerHTML = dashboardTemplate();
   decorateDashboard();
 }
@@ -321,12 +428,13 @@ async function handleRootChange(event) {
 
 async function renderForUser(user) {
   state.user = user;
-  if (!user) { root.innerHTML = loginTemplate(); return; }
+  if (!user) { document.body.classList.remove('admin-ready'); root.innerHTML = loginTemplate(); return; }
   try {
     const owner = await getDoc(doc(db, 'Owners', user.uid));
-    if (!owner.exists()) { root.innerHTML = setupTemplate(user); return; }
+    if (!owner.exists()) { document.body.classList.remove('admin-ready'); root.innerHTML = setupTemplate(user); return; }
     await refreshDashboard();
   } catch (error) {
+    document.body.classList.remove('admin-ready');
     root.innerHTML = setupTemplate(user, 'Owner access has not been enabled yet, or the Firebase security rules still need to be deployed.');
   }
 }

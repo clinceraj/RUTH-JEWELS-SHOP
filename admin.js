@@ -5,13 +5,133 @@ import { auth, db, escapeHtml } from './firebase-client.js';
 
 const root = document.querySelector('[data-admin-root]');
 const storage = getStorage();
-const state = { user:null, products:[], categories:[], campaigns:[], orders:[], editingProductId:null, existingImages:[] };
+const state = { user:null, products:[], categories:[], campaigns:[], orders:[], siteContent:{ home:{}, checkout:{} }, editingProductId:null, existingImages:[] };
 
 const titleCase = value => String(value || '').replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 const money = value => new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(Number(value || 0));
 const safeDate = value => value ? new Date(value).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : 'No end date';
 const slug = value => String(value || 'piece').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'piece';
 const byName = (left, right) => String(left.name || left.title || '').localeCompare(String(right.name || right.title || ''));
+
+const pageContentDefaults = {
+  home: {
+    mark:'Ruth Jewels · The occasion edit',
+    eyebrow:'Hand-picked for every celebration',
+    titleLineOne:'JEWELS THAT',
+    titleLineTwo:'EMPOWER EVERY STORY',
+    intro:'Hand-picked fashion jewellery for bridal rituals, festive evenings, and the everyday celebrations in between.',
+    primaryLabel:'Shop the collection',
+    primaryLink:'collections.html',
+    secondaryLabel:'Explore temple jewellery',
+    secondaryLink:'collections.html?category=Temple+Necklaces',
+    proofOne:'Bridal and temple edits',
+    proofTwo:'Delivery across India',
+    captionLabel:'Selected with intention',
+    captionTitle:'The occasion edit',
+    captionLinkLabel:'View the collection',
+    captionLink:'collections.html'
+  },
+  checkout: {
+    announcement:'Gift-ready packaging · Delivery across India · Wedding and festive edits',
+    eyebrow:'Secure checkout',
+    title:'Delivery and UPI payment.',
+    deliveryTitle:'Contact and delivery',
+    paymentTitle:'UPI payment',
+    paymentNote:'The QR contains your exact shopping-bag total and a unique Ruth Jewels order reference. Payment is confirmed only after manual verification.',
+    submitLabel:'Submit order for payment verification'
+  }
+};
+
+const pageLink = (value, fallback) => /^[a-z0-9-]+\.html(?:\?[a-zA-Z0-9%&=+_.-]+)?$/i.test(String(value || '')) ? value : fallback;
+const editorInput = (label, name, value, placeholder='') => '<label>' + label + '<input name="' + name + '" required value="' + escapeHtml(value || '') + '" placeholder="' + escapeHtml(placeholder) + '"></label>';
+const editorTextArea = (label, name, value, placeholder='') => '<label>' + label + '<textarea name="' + name + '" required rows="3" placeholder="' + escapeHtml(placeholder) + '">' + escapeHtml(value || '') + '</textarea></label>';
+
+function homeEditorTemplate() {
+  const copy = { ...pageContentDefaults.home, ...(state.siteContent.home || {}) };
+  return '<section class="admin-section admin-page-editor" id="home-page"><div class="section-heading"><div><p class="eyebrow">Home page editor</p><h2>Shape the first impression.</h2></div><p>Update the home-page wording, buttons, and image caption. Save to publish your changes.</p></div><form class="admin-form" data-page-content-form data-page="home"><div class="form-row">' +
+    editorInput('Top label', 'mark', copy.mark, 'Ruth Jewels · The occasion edit') +
+    editorInput('Small headline', 'eyebrow', copy.eyebrow, 'Hand-picked for every celebration') +
+    '</div><div class="form-row">' +
+    editorInput('Headline — line one', 'titleLineOne', copy.titleLineOne, 'JEWELS THAT') +
+    editorInput('Headline — line two', 'titleLineTwo', copy.titleLineTwo, 'EMPOWER EVERY STORY') +
+    '</div>' +
+    editorTextArea('Introduction', 'intro', copy.intro, 'A short introduction for your home page.') +
+    '<div class="form-row">' +
+    editorInput('Primary button label', 'primaryLabel', copy.primaryLabel, 'Shop the collection') +
+    editorInput('Primary button link', 'primaryLink', copy.primaryLink, 'collections.html') +
+    '</div><div class="form-row">' +
+    editorInput('Second button label', 'secondaryLabel', copy.secondaryLabel, 'Explore temple jewellery') +
+    editorInput('Second button link', 'secondaryLink', copy.secondaryLink, 'collections.html?category=Temple+Necklaces') +
+    '</div><div class="form-row">' +
+    editorInput('Trust note one', 'proofOne', copy.proofOne, 'Bridal and temple edits') +
+    editorInput('Trust note two', 'proofTwo', copy.proofTwo, 'Delivery across India') +
+    '</div><div class="form-row">' +
+    editorInput('Image caption label', 'captionLabel', copy.captionLabel, 'Selected with intention') +
+    editorInput('Image caption title', 'captionTitle', copy.captionTitle, 'The occasion edit') +
+    '</div><div class="form-row">' +
+    editorInput('Image caption button', 'captionLinkLabel', copy.captionLinkLabel, 'View the collection') +
+    editorInput('Image caption link', 'captionLink', copy.captionLink, 'collections.html') +
+    '</div><p class="admin-form-note">Links must be a page in this shop, for example <code>collections.html</code>.</p><div class="admin-form-actions"><button class="button button--primary" type="submit">Save home page changes</button><a class="button button--secondary" href="index.html" target="_blank" rel="noopener">Preview home page</a></div><p data-home-message class="form-message" hidden></p></form></section>';
+}
+
+function checkoutEditorTemplate() {
+  const copy = { ...pageContentDefaults.checkout, ...(state.siteContent.checkout || {}) };
+  return '<section class="admin-section admin-page-editor" id="checkout-page"><div class="section-heading"><div><p class="eyebrow">Checkout page editor</p><h2>Keep checkout clear.</h2></div><p>Edit the customer-facing headings and payment guidance without changing the secure order fields.</p></div><form class="admin-form" data-page-content-form data-page="checkout">' +
+    editorTextArea('Top announcement', 'announcement', copy.announcement, 'Delivery and packaging promise') +
+    '<div class="form-row">' +
+    editorInput('Small headline', 'eyebrow', copy.eyebrow, 'Secure checkout') +
+    editorInput('Main headline', 'title', copy.title, 'Delivery and UPI payment.') +
+    '</div><div class="form-row">' +
+    editorInput('Delivery section heading', 'deliveryTitle', copy.deliveryTitle, 'Contact and delivery') +
+    editorInput('Payment section heading', 'paymentTitle', copy.paymentTitle, 'UPI payment') +
+    '</div>' +
+    editorTextArea('Payment guidance', 'paymentNote', copy.paymentNote, 'Explain the payment process clearly.') +
+    editorInput('Order button label', 'submitLabel', copy.submitLabel, 'Submit order for payment verification') +
+    '<div class="admin-form-actions"><button class="button button--primary" type="submit">Save checkout changes</button><a class="button button--secondary" href="checkout.html" target="_blank" rel="noopener">Preview checkout page</a></div><p data-checkout-message class="form-message" hidden></p></form></section>';
+}
+
+function decorateDashboard() {
+  const heading = root.querySelector('.admin-heading');
+  if (!heading || root.querySelector('.admin-workspace')) return;
+  const workspace = document.createElement('div');
+  workspace.className = 'admin-workspace';
+  const sidebar = document.createElement('aside');
+  sidebar.className = 'admin-sidebar';
+  sidebar.innerHTML = '<p class="eyebrow">Owner studio</p><strong>Ruth <small>Jewels</small></strong><nav aria-label="Owner dashboard sections"><a href="#overview">Overview</a><a href="#products">Products</a><a href="#categories">Categories</a><a href="#campaigns">Events &amp; offers</a><a href="#orders">Orders</a><a href="#home-page">Edit home page</a><a href="#checkout-page">Edit checkout</a></nav><div class="admin-sidebar-preview"><span>Customer view</span><a href="index.html" target="_blank" rel="noopener">Home page</a><a href="collections.html" target="_blank" rel="noopener">Collections</a><a href="checkout.html" target="_blank" rel="noopener">Checkout</a></div>';
+  const main = document.createElement('div');
+  main.className = 'admin-main';
+  [...root.children].forEach(node => main.append(node));
+  main.querySelector('.admin-nav')?.remove();
+  main.querySelector('.admin-heading')?.setAttribute('id', 'overview');
+  const orders = main.querySelector('#orders');
+  if (orders) orders.insertAdjacentHTML('beforebegin', homeEditorTemplate() + checkoutEditorTemplate());
+  workspace.append(sidebar, main);
+  root.append(workspace);
+}
+
+async function submitPageContent(form) {
+  const page = form.dataset.page;
+  const defaults = pageContentDefaults[page];
+  if (!defaults) return;
+  const data = new FormData(form);
+  const button = form.querySelector('button[type="submit"]');
+  const payload = {};
+  Object.keys(defaults).forEach(key => { payload[key] = String(data.get(key) || '').trim() || defaults[key]; });
+  Object.keys(payload).filter(key => key.toLowerCase().includes('link')).forEach(key => { payload[key] = pageLink(payload[key], defaults[key]); });
+  button.disabled = true;
+  button.textContent = 'Saving…';
+  try {
+    await setDoc(doc(db, 'siteContent', page), { ...payload, updatedAt:serverTimestamp() }, { merge:true });
+    state.siteContent[page] = payload;
+    message('[data-' + page + '-message]', 'Saved. Refresh the customer page to see your live changes.');
+    button.textContent = page === 'home' ? 'Save home page changes' : 'Save checkout changes';
+    button.disabled = false;
+  } catch (error) {
+    message('[data-' + page + '-message]', error.message || 'The page changes could not be saved. Publish the latest Firestore rules, then try again.', true);
+    button.textContent = page === 'home' ? 'Save home page changes' : 'Save checkout changes';
+    button.disabled = false;
+  }
+}
 
 function loginTemplate() {
   return `<section class="admin-gate"><p class="eyebrow">Ruth Jewels owner dashboard</p><h1>Manage the shop from one place.</h1><p>Sign in with your owner account to manage products, images, categories, offers, and customer orders.</p><a class="button button--primary" href="account.html?return=admin.html">Sign in to the dashboard</a><a class="text-link" href="create-account.html?return=admin.html">Create owner account</a></section>`;
@@ -58,17 +178,24 @@ async function uploadImages(files, productName) {
 }
 
 async function refreshDashboard() {
-  const [products, categories, campaigns, orders] = await Promise.all([
+  const [products, categories, campaigns, orders, homeContent, checkoutContent] = await Promise.all([
     getDocs(collection(db, 'products')),
     getDocs(collection(db, 'categories')),
     getDocs(collection(db, 'campaigns')),
-    getDocs(collection(db, 'orders'))
+    getDocs(collection(db, 'orders')),
+    getDoc(doc(db, 'siteContent', 'home')).catch(() => null),
+    getDoc(doc(db, 'siteContent', 'checkout')).catch(() => null)
   ]);
   state.products = products.docs.map(item => ({ id:item.id, ...item.data() }));
   state.categories = categories.docs.map(item => ({ id:item.id, ...item.data() }));
   state.campaigns = campaigns.docs.map(item => ({ id:item.id, ...item.data() }));
   state.orders = orders.docs.map(item => ({ id:item.id, ...item.data() }));
+  state.siteContent = {
+    home:homeContent?.exists() ? homeContent.data() : {},
+    checkout:checkoutContent?.exists() ? checkoutContent.data() : {}
+  };
   root.innerHTML = dashboardTemplate();
+  decorateDashboard();
 }
 
 async function submitProduct(form) {
@@ -138,6 +265,7 @@ function beginEditProduct(id) {
   state.editingProductId = id;
   state.existingImages = product.images?.length ? product.images : [product.image].filter(Boolean);
   root.innerHTML = dashboardTemplate();
+  decorateDashboard();
   const form = root.querySelector('[data-product-form]');
   for (const field of ['name','category','price','tag','description','finish','styling','status']) if (form.elements[field]) form.elements[field].value = product[field] ?? '';
   form.scrollIntoView({ behavior:'smooth', block:'start' });
@@ -184,6 +312,7 @@ root.addEventListener('submit', event => {
   if (event.target.matches('[data-product-form]')) submitProduct(event.target);
   if (event.target.matches('[data-category-form]')) submitCategory(event.target);
   if (event.target.matches('[data-campaign-form]')) submitCampaign(event.target);
+  if (event.target.matches('[data-page-content-form]')) submitPageContent(event.target);
 });
 
 onAuthStateChanged(auth, user => { renderForUser(user); });

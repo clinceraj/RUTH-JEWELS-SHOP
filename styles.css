@@ -510,3 +510,13 @@ body .upi-qr { background:#fff7fb; }
   .admin-sidebar-preview span { grid-column:1/-1; }
   .admin-main .admin-heading { margin-bottom:34px; }
 }
+
+
+/* Owner studio view switching */
+.admin-sidebar nav button { width:100%; border:0; padding:12px; background:transparent; color:#e5bdcf; font:600 10px/1.2 var(--sans); letter-spacing:.12em; text-align:left; text-transform:uppercase; transition:background .2s ease,color .2s ease; }
+.admin-sidebar nav button:hover,.admin-sidebar nav button:focus-visible,.admin-sidebar nav button.is-active { background:rgba(239,185,212,.14); color:#fff7fb; outline:0; }
+.admin-sidebar nav button.is-active { box-shadow:inset 2px 0 0 #efb9d4; }
+[data-dashboard-panel][hidden] { display:none !important; }
+@media (max-width:660px) {
+  .admin-sidebar nav button { padding:11px 9px; font-size:8px; }
+}

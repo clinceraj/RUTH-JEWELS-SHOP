@@ -5,7 +5,7 @@ import { auth, db, escapeHtml } from './firebase-client.js';
 
 const root = document.querySelector('[data-admin-root]');
 const storage = getStorage();
-const state = { user:null, products:[], categories:[], campaigns:[], orders:[], siteContent:{ home:{}, checkout:{} }, editingProductId:null, existingImages:[] };
+const state = { user:null, products:[], categories:[], campaigns:[], orders:[], siteContent:{ home:{}, checkout:{} }, dashboardView:'overview', editingProductId:null, existingImages:[] };
 
 const titleCase = value => String(value || '').replaceAll('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 const money = value => new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(Number(value || 0));
@@ -90,6 +90,18 @@ function checkoutEditorTemplate() {
     '<div class="admin-form-actions"><button class="button button--primary" type="submit">Save checkout changes</button><a class="button button--secondary" href="checkout.html" target="_blank" rel="noopener">Preview checkout page</a></div><p data-checkout-message class="form-message" hidden></p></form></section>';
 }
 
+function setDashboardView(view) {
+  const validViews = ['overview', 'products', 'categories', 'campaigns', 'orders', 'home-page', 'checkout-page'];
+  const selected = validViews.includes(view) ? view : 'overview';
+  state.dashboardView = selected;
+  root.querySelectorAll('[data-dashboard-panel]').forEach(panel => { panel.hidden = panel.dataset.dashboardPanel !== selected; });
+  root.querySelectorAll('[data-dashboard-view]').forEach(button => {
+    const isActive = button.dataset.dashboardView === selected;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-current', isActive ? 'page' : 'false');
+  });
+}
+
 function decorateDashboard() {
   const heading = root.querySelector('.admin-heading');
   if (!heading || root.querySelector('.admin-workspace')) return;
@@ -97,16 +109,28 @@ function decorateDashboard() {
   workspace.className = 'admin-workspace';
   const sidebar = document.createElement('aside');
   sidebar.className = 'admin-sidebar';
-  sidebar.innerHTML = '<p class="eyebrow">Owner studio</p><strong>Ruth <small>Jewels</small></strong><nav aria-label="Owner dashboard sections"><a href="#overview">Overview</a><a href="#products">Products</a><a href="#categories">Categories</a><a href="#campaigns">Events &amp; offers</a><a href="#orders">Orders</a><a href="#home-page">Edit home page</a><a href="#checkout-page">Edit checkout</a></nav><div class="admin-sidebar-preview"><span>Customer view</span><a href="index.html" target="_blank" rel="noopener">Home page</a><a href="collections.html" target="_blank" rel="noopener">Collections</a><a href="checkout.html" target="_blank" rel="noopener">Checkout</a></div>';
+  sidebar.innerHTML = '<p class="eyebrow">Owner studio</p><strong>Ruth <small>Jewels</small></strong><nav aria-label="Owner dashboard sections"><button type="button" data-dashboard-view="overview">Overview</button><button type="button" data-dashboard-view="products">Products</button><button type="button" data-dashboard-view="categories">Categories</button><button type="button" data-dashboard-view="campaigns">Events &amp; offers</button><button type="button" data-dashboard-view="orders">Orders</button><button type="button" data-dashboard-view="home-page">Edit home page</button><button type="button" data-dashboard-view="checkout-page">Edit checkout</button></nav><div class="admin-sidebar-preview"><span>Customer view</span><a href="index.html" target="_blank" rel="noopener">Home page</a><a href="collections.html" target="_blank" rel="noopener">Collections</a><a href="checkout.html" target="_blank" rel="noopener">Checkout</a></div>';
   const main = document.createElement('div');
   main.className = 'admin-main';
   [...root.children].forEach(node => main.append(node));
   main.querySelector('.admin-nav')?.remove();
-  main.querySelector('.admin-heading')?.setAttribute('id', 'overview');
+  const overviewHeading = main.querySelector('.admin-heading');
+  if (overviewHeading) overviewHeading.id = 'overview';
   const orders = main.querySelector('#orders');
   if (orders) orders.insertAdjacentHTML('beforebegin', homeEditorTemplate() + checkoutEditorTemplate());
+  const panels = {
+    overview:[overviewHeading, main.querySelector('.admin-stats')],
+    products:[main.querySelector('#products')],
+    categories:[main.querySelector('#categories')],
+    campaigns:[main.querySelector('#campaigns')],
+    orders:[main.querySelector('#orders')],
+    'home-page':[main.querySelector('#home-page')],
+    'checkout-page':[main.querySelector('#checkout-page')]
+  };
+  Object.entries(panels).forEach(([name, nodes]) => nodes.filter(Boolean).forEach(node => node.dataset.dashboardPanel = name));
   workspace.append(sidebar, main);
   root.append(workspace);
+  setDashboardView(state.dashboardView);
 }
 
 async function submitPageContent(form) {
@@ -263,6 +287,7 @@ function beginEditProduct(id) {
   const product = state.products.find(item => item.id === id);
   if (!product) return;
   state.editingProductId = id;
+  state.dashboardView = 'products';
   state.existingImages = product.images?.length ? product.images : [product.image].filter(Boolean);
   root.innerHTML = dashboardTemplate();
   decorateDashboard();
@@ -274,6 +299,7 @@ function beginEditProduct(id) {
 async function handleRootClick(event) {
   const target = event.target.closest('button');
   if (!target) return;
+  if (target.dataset.dashboardView) { setDashboardView(target.dataset.dashboardView); return; }
   if (target.matches('[data-owner-sign-out]')) { await signOut(auth); return; }
   if (target.matches('[data-copy-uid]')) { await navigator.clipboard?.writeText(state.user.uid); target.textContent = 'Copied'; return; }
   if (target.matches('[data-recheck-owner]')) { await renderForUser(state.user); return; }

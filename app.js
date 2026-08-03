@@ -17,6 +17,12 @@ const getCart = () => JSON.parse(localStorage.getItem('ruth-jewels-cart') || '[]
 const saveCart = cart => { localStorage.setItem('ruth-jewels-cart', JSON.stringify(cart)); updateCartCount(); };
 const findProduct = id => products.find(product => product.id === id);
 const page = location.pathname.split('/').pop() || 'index.html';
+const pageContent = {};
+const escapePageCopy = value => String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+const pageCopy = (pageName, key, fallback) => {
+  const value = pageContent[pageName]?.[key];
+  return escapePageCopy(typeof value === 'string' && value.trim() ? value.trim() : fallback);
+};
 
 function logoMarkup() {
   return '<span class="brand-emblem"><img src="assets/ruth-jewels-logo-v2.jpg" alt=""></span><span class="brand-name">Ruth <small>Jewels</small></span>';
@@ -35,10 +41,17 @@ function updateCartCount() { document.querySelectorAll('[data-cart-count]').forE
 function showToast(message) { let toast = document.querySelector('.toast'); if (!toast) { toast = document.createElement('div'); toast.className = 'toast'; toast.setAttribute('role','status'); document.body.append(toast); } toast.textContent = message; toast.classList.add('is-visible'); window.setTimeout(() => toast.classList.remove('is-visible'), 2600); }
 function addToCart(productId) { const cart = getCart(); const existing = cart.find(item => item.id === productId); if (existing) existing.quantity += 1; else cart.push({id:productId,quantity:1}); saveCart(cart); showToast(`${findProduct(productId)?.name || 'Piece'} added to your shopping bag.`); }
 function cartTotal() { return getCart().reduce((total,item) => total + (findProduct(item.id)?.price || 0) * item.quantity, 0); }
-function cartItemsTemplate(compact=false) { const cart = getCart(); if (!cart.length) return compact ? '<p>Your shopping bag is empty.</p>' : '<div class="empty-state"><h2>Your shopping bag is waiting.</h2><p>Explore statement pieces for weddings, festivals, and thoughtful gifting.</p><a class="button button--primary" href="collections.html">Shop all jewellery</a></div>';
+function cartItemsTemplate(compact=false) {
+  const cart = getCart();
+  if (!cart.length) {
+    return compact ? '<p>Your shopping bag is empty.</p>' : '<div class="empty-state"><h2>' + pageCopy('cart', 'emptyTitle', 'Your shopping bag is waiting.') + '</h2><p>' + pageCopy('cart', 'emptyCopy', 'Explore statement pieces for weddings, festivals, and thoughtful gifting.') + '</p><a class="button button--primary" href="collections.html">' + pageCopy('cart', 'browseLabel', 'Shop all jewellery') + '</a></div>';
+  }
   return cart.map(item => { const product = findProduct(item.id); if (!product) return ''; return compact ? `<div class="summary-item"><img src="${product.image}" alt=""><div><strong>${product.name}</strong><span>${item.quantity} &times; ${money(product.price)}</span></div></div>` : `<article class="cart-line"><img src="${product.image}" alt="${product.name}"><div><h2>${product.name}</h2><p>${product.category}</p><div class="quantity" aria-label="Quantity for ${product.name}"><button data-adjust-quantity="${product.id}" data-change="-1" aria-label="Decrease ${product.name} quantity">âˆ’</button><span>${item.quantity}</span><button data-adjust-quantity="${product.id}" data-change="1" aria-label="Increase ${product.name} quantity">+</button></div><br><button class="remove" data-remove-item="${product.id}">Remove from bag</button></div><span class="line-price">${money(product.price * item.quantity)}</span></article>`; }).join('');
 }
-function summaryTemplate(withButton=false) { const total = cartTotal(); return `<h2>Order summary</h2><div class="summary-row"><span>Subtotal</span><span>${money(total)}</span></div><div class="summary-row"><span>Delivery within India</span><span>Complimentary</span></div><div class="summary-total"><span>Total</span><span>${money(total)}</span></div>${withButton ? '<a class="button button--primary" href="checkout.html">Proceed to secure checkout</a>' : ''}`; }
+function summaryTemplate(withButton=false) {
+  const total = cartTotal();
+  return `<h2>${pageCopy('cart', 'summaryTitle', 'Order summary')}</h2><div class="summary-row"><span>Subtotal</span><span>${money(total)}</span></div><div class="summary-row"><span>Delivery within India</span><span>Complimentary</span></div><div class="summary-total"><span>Total</span><span>${money(total)}</span></div>${withButton ? '<a class="button button--primary" href="checkout.html">' + pageCopy('cart', 'checkoutLabel', 'Proceed to secure checkout') + '</a>' : ''}`;
+}
 function renderHome() { const target = document.querySelector('[data-featured-products]'); if (target) { target.innerHTML = products.slice(0,3).map(productCard).join(''); observeReveals(); } }
 function renderCollections() { const target = document.querySelector('[data-collection-products]'); const filters = document.querySelector('[data-category-filters]'); if (!target || !filters) return; const categories = ['All', ...new Set(products.map(product => product.category))]; let current = new URLSearchParams(location.search).get('category') || 'All'; let latestFirst = false;
   filters.innerHTML = categories.map(category => `<button class="filter-button ${category === current ? 'is-active':''}" data-filter="${category}" aria-pressed="${category === current}">${category === 'All' ? 'View all jewellery' : category}</button>`).join('');
@@ -46,7 +59,12 @@ function renderCollections() { const target = document.querySelector('[data-coll
   filters.addEventListener('click', event => { const button = event.target.closest('[data-filter]'); if (!button) return; current = button.dataset.filter; filters.querySelectorAll('[data-filter]').forEach(item => { const selected = item === button; item.classList.toggle('is-active', selected); item.setAttribute('aria-pressed', selected); }); render(); });
   document.querySelector('[data-sort-products]')?.addEventListener('click', event => { latestFirst = !latestFirst; event.currentTarget.innerHTML = `${latestFirst ? 'Show featured order' : 'Show newest first'} <span aria-hidden="true">â†“</span>`; render(); }); render();
 }
-function renderProduct() { const root = document.querySelector('[data-product-page]'); if (!root) return; const product = findProduct(new URLSearchParams(location.search).get('id')) || products[0]; document.title = `${product.name} | Ruth Jewels`; root.innerHTML = `<p class="breadcrumbs"><a href="collections.html">All jewellery</a> / <a href="collections.html?category=${encodeURIComponent(product.category)}">${product.category}</a> / ${product.name}</p><section class="product-detail"><div class="product-detail-image reveal"><img src="${product.image}" alt="${product.name}"></div><div class="product-detail-copy reveal"><p class="eyebrow">${product.category}</p><h1>${product.name}</h1><p class="product-detail-price">${money(product.price)}</p><p class="tax-note">Inclusive of applicable taxes</p><p class="product-detail-description">${product.description}</p><div class="product-meta"><div><span>Finish</span><strong>${product.finish}</strong></div><div><span>Styling note</span><strong>${product.styling}</strong></div><div><span>Presentation</span><strong>Gift-ready Ruth packaging</strong></div><div><span>Delivery</span><strong>Available across India</strong></div></div><button class="button button--primary add-to-cart" type="button" data-add-to-cart="${product.id}">Add ${product.name} to shopping bag Â· ${money(product.price)}</button><a class="button button--secondary product-back" href="collections.html">Continue browsing jewellery</a></div></section>`;
+function renderProduct() {
+  const root = document.querySelector('[data-product-page]');
+  if (!root) return;
+  const product = findProduct(new URLSearchParams(location.search).get('id')) || products[0];
+  document.title = `${product.name} | Ruth Jewels`;
+  root.innerHTML = `<p class="breadcrumbs"><a href="collections.html">${pageCopy('product', 'allLabel', 'All jewellery')}</a> / <a href="collections.html?category=${encodeURIComponent(product.category)}">${product.category}</a> / ${product.name}</p><section class="product-detail"><div class="product-detail-image reveal"><img src="${product.image}" alt="${product.name}"></div><div class="product-detail-copy reveal"><p class="eyebrow">${product.category}</p><h1>${product.name}</h1><p class="product-detail-price">${money(product.price)}</p><p class="tax-note">${pageCopy('product', 'taxNote', 'Inclusive of applicable taxes')}</p><p class="product-detail-description">${product.description}</p><div class="product-meta"><div><span>Finish</span><strong>${product.finish}</strong></div><div><span>Styling note</span><strong>${product.styling}</strong></div><div><span>${pageCopy('product', 'presentationLabel', 'Presentation')}</span><strong>${pageCopy('product', 'presentationValue', 'Gift-ready Ruth packaging')}</strong></div><div><span>${pageCopy('product', 'deliveryLabel', 'Delivery')}</span><strong>${pageCopy('product', 'deliveryValue', 'Available across India')}</strong></div></div><button class="button button--primary add-to-cart" type="button" data-add-to-cart="${product.id}">${pageCopy('product', 'addLabel', 'Add to shopping bag')} · ${money(product.price)}</button><a class="button button--secondary product-back" href="collections.html">${pageCopy('product', 'browseLabel', 'Continue browsing jewellery')}</a></div></section>`;
 }
 function renderCart() { const root = document.querySelector('[data-cart-page]'); if (!root) return; if (!getCart().length) { root.innerHTML = cartItemsTemplate(); return; } root.innerHTML = `<div class="cart-layout"><section>${cartItemsTemplate()}</section><aside class="cart-summary">${summaryTemplate(true)}</aside></div>`; }
 function renderCheckout() { const summary = document.querySelector('[data-checkout-summary]'); if (summary) summary.innerHTML = `${cartItemsTemplate(true)}${getCart().length ? summaryTemplate() : '<p><a class="text-link" href="collections.html">Shop jewellery before checkout â†’</a></p>'}`; }
@@ -73,7 +91,12 @@ function replaceProducts(nextProducts) {
   renderHome(); renderCollections(); renderProduct(); renderCart(); renderCheckout(); updateCartCount();
 }
 function init() { document.querySelectorAll('[data-header]').forEach(node => node.innerHTML = headerTemplate()); document.querySelectorAll('[data-footer]').forEach(node => node.innerHTML = footerTemplate()); updateCartCount(); renderHome(); renderCollections(); renderProduct(); renderCart(); renderCheckout(); bindInteractions(); observeReveals(); }
-window.RuthJewelsStore = { get products() { return products; }, getCart, findProduct, cartTotal, money, showToast, updateCartCount, renderCart, renderCheckout, replaceProducts, clearCart() { localStorage.removeItem('ruth-jewels-cart'); updateCartCount(); } };
+function setPageContent(pageName, content) {
+  pageContent[pageName] = content || {};
+  if (pageName === 'product') renderProduct();
+  if (pageName === 'cart') { renderCart(); renderCheckout(); }
+}
+window.RuthJewelsStore = { get products() { return products; }, getCart, findProduct, cartTotal, money, showToast, updateCartCount, renderCart, renderCheckout, replaceProducts, setPageContent, clearCart() { localStorage.removeItem('ruth-jewels-cart'); updateCartCount(); } };
 init();
 import('./firebase-client.js').catch(() => {});
 

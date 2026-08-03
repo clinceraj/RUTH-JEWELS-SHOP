@@ -18,6 +18,52 @@ const db = getFirestore(app);
 const store = window.RuthJewelsStore;
 const upiConfig = { payeeAddress:'merlinjmerlin97@okicici', payeeName:'Ruth Jewels' };
 
+
+const safeSitePageLink = (value, fallback) => /^[a-z0-9-]+\.html(?:\?[a-zA-Z0-9%&=+_.-]+)?$/i.test(String(value || '')) ? value : fallback;
+const applyContentText = (selector, value) => { const node = document.querySelector(selector); if (node && typeof value === 'string' && value.trim()) node.textContent = value.trim(); };
+const applyContentLink = (selector, label, link, fallbackLabel, fallbackLink) => {
+  const node = document.querySelector(selector);
+  if (!node) return;
+  if (typeof label === 'string' && label.trim()) node.textContent = label.trim();
+  node.setAttribute('href', safeSitePageLink(link, fallbackLink));
+};
+
+async function loadEditablePageContent() {
+  const currentPage = location.pathname.split('/').pop() || 'index.html';
+  const page = currentPage === 'index.html' ? 'home' : currentPage === 'checkout.html' ? 'checkout' : '';
+  if (!page) return;
+  try {
+    const snapshot = await getDoc(doc(db, 'siteContent', page));
+    if (!snapshot.exists()) return;
+    const content = snapshot.data();
+    if (page === 'home') {
+      applyContentText('[data-home-mark]', content.mark);
+      applyContentText('[data-home-eyebrow]', content.eyebrow);
+      applyContentText('[data-home-title-one]', content.titleLineOne);
+      applyContentText('[data-home-title-two]', content.titleLineTwo);
+      applyContentText('[data-home-intro]', content.intro);
+      applyContentLink('[data-home-primary]', content.primaryLabel, content.primaryLink, 'Shop the collection', 'collections.html');
+      applyContentLink('[data-home-secondary]', content.secondaryLabel, content.secondaryLink, 'Explore temple jewellery', 'collections.html?category=Temple+Necklaces');
+      applyContentText('[data-home-proof-one]', content.proofOne);
+      applyContentText('[data-home-proof-two]', content.proofTwo);
+      applyContentText('[data-home-caption-label]', content.captionLabel);
+      applyContentText('[data-home-caption-title]', content.captionTitle);
+      applyContentLink('[data-home-caption-link]', content.captionLinkLabel, content.captionLink, 'View the collection', 'collections.html');
+    }
+    if (page === 'checkout') {
+      applyContentText('[data-checkout-announcement]', content.announcement);
+      applyContentText('[data-checkout-eyebrow]', content.eyebrow);
+      applyContentText('[data-checkout-title]', content.title);
+      applyContentText('[data-checkout-delivery-title]', content.deliveryTitle);
+      applyContentText('[data-checkout-payment-title]', content.paymentTitle);
+      applyContentText('[data-checkout-payment-note]', content.paymentNote);
+      applyContentText('[data-checkout-submit-label]', content.submitLabel);
+    }
+  } catch (error) {
+    // Existing page copy remains visible until content permissions are enabled.
+  }
+}
+
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const returnDestination = () => {
   const returnTo = new URLSearchParams(location.search).get('return');
@@ -210,6 +256,7 @@ document.querySelector('[data-account-form]')?.addEventListener('submit', event 
 
 loadPublishedProducts();
 loadActiveCampaign();
+loadEditablePageContent();
 
 onAuthStateChanged(auth, user => {
   renderAccountOverview(user);

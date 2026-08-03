@@ -12,50 +12,77 @@
     <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=berry-font-1">
     <style>
-      body.home-merged .site-header { background:#351329; color:#fff8fc; }
-      body.home-merged .brand-emblem { border-color:rgba(255,228,242,.3); background:#f3d7e5; }
-      body.home-merged .bag-link { border-color:rgba(255,240,249,.28); }
+      body.home-merged { background:#351329; }
+      body.home-merged .site-header { position:relative; z-index:5; background:#351329; color:#fff8fc; border-bottom:1px solid rgba(255,228,242,.14); }
+      body.home-merged .brand-emblem { border-color:rgba(255,228,242,.32); background:#f3d7e5; }
+      body.home-merged .bag-link { border-color:rgba(255,240,249,.3); }
       body.home-merged .bag-count { background:#efb9d4; color:#351329; }
-      body.home-merged .hero { grid-template-columns:.92fr 1.08fr; min-height:calc(100svh - 127px); background:#351329; }
-      body.home-merged .hero:before { border-color:rgba(255,255,255,.11); box-shadow:0 0 0 65px rgba(255,255,255,.018),0 0 0 130px rgba(255,255,255,.012); }
-      body.home-merged .hero-copy { justify-self:center; max-width:700px; padding:clamp(62px,9vw,132px) clamp(27px,5vw,82px); color:#fff8f1; text-align:center; }
-      body.home-merged .hero-copy>.eyebrow { justify-content:center; color:#e6bac4; letter-spacing:.2em; }
-      body.home-merged .hero-copy>.eyebrow:before,body.home-merged .hero-copy>.eyebrow:after { display:none; }
-      body.home-merged .hero h1 { max-width:560px; margin:0 auto; color:#fff8f1; font-size:clamp(27px,2.95vw,39px); font-weight:400; line-height:.96; letter-spacing:.025em; text-align:center; text-shadow:none; }
-      body.home-merged .hero-intro { max-width:410px; margin:25px auto 0; color:#f3dce7; font-size:14px; line-height:1.9; text-align:center; }
-      body.home-merged .hero-actions { justify-content:center; margin-top:30px; }
-      body.home-merged .hero-copy:after { left:50%; bottom:34px; width:58px; background:#efb9d4; opacity:.68; transform:translateX(-50%); }
-      body.home-merged .hero-image--campaign { background:#5c2648; }
-      body.home-merged .hero-image--campaign:after { background:rgba(40,8,23,.32); }
-      body.home-merged .hero-image-caption { left:clamp(24px,4vw,54px); right:clamp(24px,4vw,54px); bottom:34px; }
+
+      body.home-merged .hero { position:relative; isolation:isolate; overflow:hidden; grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr); min-height:calc(100svh - 127px); background:#351329; }
+      body.home-merged .hero:before { width:590px; height:590px; top:-366px; left:-236px; border-color:rgba(255,228,242,.14); box-shadow:0 0 0 74px rgba(255,228,242,.027),0 0 0 148px rgba(255,228,242,.018); }
+      body.home-merged .hero:after { content:""; position:absolute; z-index:-1; inset:0 auto 0 0; width:56%; background:radial-gradient(circle at 48% 44%,rgba(123,50,91,.32),transparent 49%); pointer-events:none; }
+
+      body.home-merged .hero-copy { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; justify-self:stretch; width:auto; max-width:none; min-height:inherit; padding:clamp(64px,8vw,116px) clamp(34px,5.7vw,86px); color:#fff8f1; text-align:center; }
+      body.home-merged .hero-copy:before { content:""; position:absolute; inset:clamp(38px,4vw,62px) clamp(20px,2.5vw,42px); border:1px solid rgba(255,228,242,.1); border-top:0; border-bottom:0; pointer-events:none; }
+      body.home-merged .hero-copy:after { display:none; }
+      body.home-merged .hero-mark { display:flex; align-items:center; gap:10px; margin:0 0 25px; color:#e9b9ce; font-size:9px; font-weight:600; letter-spacing:.19em; text-transform:uppercase; }
+      body.home-merged .hero-mark i { width:4px; height:4px; border-radius:50%; background:#efb9d4; }
+      body.home-merged .hero-copy>.eyebrow { justify-content:center; margin:0 0 18px; color:#f2c7d9; letter-spacing:.24em; }
+      body.home-merged .hero-copy>.eyebrow:before, body.home-merged .hero-copy>.eyebrow:after { display:none; }
+      body.home-merged .hero h1 { max-width:620px; margin:0; color:#fff8f1; font-size:clamp(31px,3.55vw,48px); font-weight:400; line-height:.98; letter-spacing:.018em; text-align:center; text-shadow:none; }
+      body.home-merged .hero h1 span { display:block; white-space:nowrap; }
+      body.home-merged .hero h1 span:last-child { color:#f0b9d3; }
+      body.home-merged .hero-intro { max-width:414px; margin:24px auto 0; color:#f5dfeb; font-size:14px; line-height:1.9; text-align:center; }
+      body.home-merged .hero-actions { justify-content:center; gap:13px; margin-top:30px; }
+      body.home-merged .hero-actions .button { min-width:174px; }
+      body.home-merged .hero-proof { display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; margin-top:31px; color:#e3b8cb; font-size:9px; font-weight:600; letter-spacing:.13em; text-transform:uppercase; }
+      body.home-merged .hero-proof span { display:inline-flex; align-items:center; gap:8px; }
+      body.home-merged .hero-proof span:before { content:""; width:4px; height:4px; border:1px solid #efb9d4; border-radius:50%; }
+
+      body.home-merged .hero-image--campaign { background:#4e1c3c; }
+      body.home-merged .hero-image--campaign:before { content:""; position:absolute; z-index:1; inset:0; background:linear-gradient(90deg,rgba(53,19,41,.22),transparent 27%,rgba(22,5,15,.07)); pointer-events:none; }
+      body.home-merged .hero-image--campaign:after { background:linear-gradient(0deg,rgba(31,7,21,.68),transparent 43%); }
+      body.home-merged .hero-image--campaign img { filter:saturate(.82) contrast(1.04); transform:scale(1.025); transform-origin:center; }
+      body.home-merged .hero-image-caption { z-index:2; display:grid; grid-template-columns:1fr auto; gap:7px 24px; align-items:end; left:clamp(26px,4vw,58px); right:clamp(26px,4vw,58px); bottom:31px; padding:17px 18px 16px; border:1px solid rgba(255,238,247,.2); background:rgba(38,7,25,.34); backdrop-filter:blur(9px); }
+      body.home-merged .hero-image-caption span { grid-column:1/-1; color:#efb9d4; font-size:8px; font-weight:600; letter-spacing:.17em; text-transform:uppercase; }
+      body.home-merged .hero-image-caption strong { color:#fff8f1; font:400 clamp(22px,2vw,31px)/1.04 var(--serif); }
+      body.home-merged .hero-image-caption a { padding-bottom:4px; border-bottom:1px solid rgba(255,238,247,.52); color:#fff8f1; font-size:9px; font-weight:600; letter-spacing:.13em; text-transform:uppercase; white-space:nowrap; }
       body.home-merged .button--primary { background:#e7afd0; color:#351329; }
       body.home-merged .button--primary:hover { background:#fff2f9; color:#351329; }
       body.home-merged .market-strip { background:#2a0e20; }
       body.home-merged .market-strip span { color:#efb9d4; }
+
       @media (max-width:800px) {
-        body.home-merged .hero { grid-template-columns:1fr; min-height:700px; }
-        body.home-merged .hero-copy { padding:72px 27px 92px; }
-        body.home-merged .hero h1 { font-size:clamp(28px,7vw,46px); }
-        body.home-merged .hero-image { position:absolute; inset:0; opacity:.42; }
+        body.home-merged .hero { display:block; min-height:680px; }
+        body.home-merged .hero:after { width:100%; background:linear-gradient(180deg,rgba(53,19,41,.74),rgba(53,19,41,.88)); }
+        body.home-merged .hero-copy { min-height:680px; padding:72px 20px 60px; }
+        body.home-merged .hero-copy:before { inset:28px 15px; }
+        body.home-merged .hero h1 { font-size:clamp(23px,7.25vw,34px); }
+        body.home-merged .hero-intro { max-width:355px; font-size:13px; }
+        body.home-merged .hero-actions { width:100%; flex-direction:column; align-items:stretch; max-width:290px; }
+        body.home-merged .hero-actions .button { width:100%; }
+        body.home-merged .hero-proof { max-width:310px; }
+        body.home-merged .hero-image { position:absolute; inset:0; opacity:.46; }
         body.home-merged .hero-image-caption { display:none; }
-        body.home-merged .hero-copy { z-index:3; }
       }
     </style>
   </head>
   <body class="home-dark home-merged">
-    <div class="announcement">Complimentary delivery across India &nbsp;Â·&nbsp; Hand-picked pieces &nbsp;Â·&nbsp; Bridal and temple edits</div>
+    <div class="announcement">Complimentary delivery across India &middot; Hand-picked pieces &middot; Bridal and temple edits</div>
     <header class="site-header" data-header></header>
     <main>
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow reveal">A considered jewellery edit</p>
-          <h1 class="reveal">JEWELS THAT<br>EMPOWER EVERY STORY</h1>
+          <p class="hero-mark reveal">Ruth Jewels <i aria-hidden="true"></i> The occasion edit</p>
+          <p class="eyebrow reveal">Hand-picked for every celebration</p>
+          <h1 class="reveal"><span>JEWELS THAT</span><span>EMPOWER EVERY STORY</span></h1>
           <p class="hero-intro reveal">Hand-picked fashion jewellery for bridal rituals, festive evenings, and the everyday celebrations in between.</p>
           <div class="hero-actions reveal"><a class="button button--primary" href="collections.html">Shop the collection</a><a class="button button--secondary" href="collections.html?category=Temple+Necklaces">Explore temple jewellery</a></div>
+          <div class="hero-proof reveal"><span>Bridal and temple edits</span><span>Delivery across India</span></div>
         </div>
         <div class="hero-image hero-image--campaign reveal">
           <img src="assets/ruth-jewels-editorial-hero.jpg" alt="Ruth Jewels fashion jewellery arranged for the celebration edit">
-          <div class="hero-image-caption"><span>Hand-picked for your occasion</span><strong>The celebration edit</strong><a href="collections.html">Discover the collection</a></div>
+          <div class="hero-image-caption"><span>Selected with intention</span><strong>The occasion edit</strong><a href="collections.html">View the collection</a></div>
         </div>
       </section>
 
@@ -66,9 +93,9 @@
       <section class="collection-links section-shell reveal">
         <div class="section-kicker"><p class="eyebrow">Shop by moment</p><p>Find the silhouette that feels right for your celebration.</p></div>
         <div class="collection-link-grid">
-          <a href="collections.html?category=Temple+Necklaces" class="collection-link"><span>01</span><strong>Temple jewellery</strong><em>Shop temple designs â†’</em></a>
-          <a href="collections.html?category=Chokers" class="collection-link"><span>02</span><strong>Statement chokers</strong><em>Shop chokers â†’</em></a>
-          <a href="collections.html?category=Wedding+Edit" class="collection-link"><span>03</span><strong>The bridal edit</strong><em>Shop bridal pieces â†’</em></a>
+          <a href="collections.html?category=Temple+Necklaces" class="collection-link"><span>01</span><strong>Temple jewellery</strong><em>Shop temple designs &rarr;</em></a>
+          <a href="collections.html?category=Chokers" class="collection-link"><span>02</span><strong>Statement chokers</strong><em>Shop chokers &rarr;</em></a>
+          <a href="collections.html?category=Wedding+Edit" class="collection-link"><span>03</span><strong>The bridal edit</strong><em>Shop bridal pieces &rarr;</em></a>
         </div>
       </section>
 

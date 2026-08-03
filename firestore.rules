@@ -29,6 +29,12 @@ service cloud.firestore {
       allow create, update, delete: if isOwner();
     }
 
+
+    match /siteContent/{pageId} {
+      allow read: if pageId == 'home' || pageId == 'checkout';
+      allow create, update, delete: if isOwner();
+    }
+
     match /users/{userId} {
       allow create: if ownsUserDocument(userId)
         && request.resource.data.uid == request.auth.uid

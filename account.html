@@ -13,14 +13,14 @@
     <main class="account-page">
       <section class="account-image account-image--brand"><img src="assets/ruth-jewels-logo-v2.jpg" alt="Ruth Jewels"></section>
       <section class="account-panel">
-        <p class="eyebrow">Ruth Jewels account</p><h1>Welcome back.</h1>
-        <p>Sign in to review your orders, payment-verification status and account details.</p>
+        <p class="eyebrow" data-account-eyebrow>Ruth Jewels account</p><h1 data-account-title>Welcome back.</h1>
+        <p data-account-intro>Sign in to review your orders, payment-verification status and account details.</p>
         <form data-account-form>
           <label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
           <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></label>
-          <button class="button button--primary" type="submit">Sign in to your account</button>
+          <button class="button button--primary" type="submit" data-account-submit-label>Sign in to your account</button>
         </form>
-        <p class="form-switch">New to Ruth Jewels? <a href="create-account.html">Create your account</a></p>
+        <p class="form-switch"><span data-account-switch-text>New to Ruth Jewels?</span> <a href="create-account.html" data-account-switch-label>Create your account</a></p>
         <p class="demo-label">Secure account service powered by Firebase Authentication.</p>
       </section>
     </main>

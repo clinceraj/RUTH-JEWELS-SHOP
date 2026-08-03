@@ -20,6 +20,22 @@ const upiConfig = { payeeAddress:'merlinjmerlin97@okicici', payeeName:'Ruth Jewe
 
 
 const safeSitePageLink = (value, fallback) => /^[a-z0-9-]+\.html(?:\?[a-zA-Z0-9%&=+_.-]+)?$/i.test(String(value || '')) ? value : fallback;
+const editablePageContent = {};
+const pageKeyByFile = {
+  'index.html':'home',
+  'collections.html':'collections',
+  'product.html':'product',
+  'cart.html':'cart',
+  'checkout.html':'checkout',
+  'account.html':'account',
+  'create-account.html':'create-account',
+  'account-overview.html':'account-overview',
+  'about.html':'about'
+};
+const editableCopy = (page, key, fallback) => {
+  const value = editablePageContent[page]?.[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+};
 const applyContentText = (selector, value) => { const node = document.querySelector(selector); if (node && typeof value === 'string' && value.trim()) node.textContent = value.trim(); };
 const applyContentLink = (selector, label, link, fallbackLabel, fallbackLink) => {
   const node = document.querySelector(selector);
@@ -28,37 +44,78 @@ const applyContentLink = (selector, label, link, fallbackLabel, fallbackLink) =>
   node.setAttribute('href', safeSitePageLink(link, fallbackLink));
 };
 
+function applyStaticPageContent(page, content) {
+  if (page === 'home') {
+    applyContentText('[data-home-mark]', content.mark);
+    applyContentText('[data-home-eyebrow]', content.eyebrow);
+    applyContentText('[data-home-title-one]', content.titleLineOne);
+    applyContentText('[data-home-title-two]', content.titleLineTwo);
+    applyContentText('[data-home-intro]', content.intro);
+    applyContentLink('[data-home-primary]', content.primaryLabel, content.primaryLink, 'Shop the collection', 'collections.html');
+    applyContentLink('[data-home-secondary]', content.secondaryLabel, content.secondaryLink, 'Explore temple jewellery', 'collections.html?category=Temple+Necklaces');
+    applyContentText('[data-home-proof-one]', content.proofOne);
+    applyContentText('[data-home-proof-two]', content.proofTwo);
+    applyContentText('[data-home-caption-label]', content.captionLabel);
+    applyContentText('[data-home-caption-title]', content.captionTitle);
+    applyContentLink('[data-home-caption-link]', content.captionLinkLabel, content.captionLink, 'View the collection', 'collections.html');
+  }
+  if (page === 'collections') {
+    applyContentText('[data-collections-eyebrow]', content.eyebrow);
+    applyContentText('[data-collections-title]', content.title);
+    applyContentText('[data-collections-intro]', content.intro);
+  }
+  if (page === 'cart') {
+    applyContentText('[data-cart-eyebrow]', content.eyebrow);
+    applyContentText('[data-cart-title]', content.title);
+  }
+  if (page === 'checkout') {
+    applyContentText('[data-checkout-announcement]', content.announcement);
+    applyContentText('[data-checkout-eyebrow]', content.eyebrow);
+    applyContentText('[data-checkout-title]', content.title);
+    applyContentText('[data-checkout-delivery-title]', content.deliveryTitle);
+    applyContentText('[data-checkout-payment-title]', content.paymentTitle);
+    applyContentText('[data-checkout-payment-note]', content.paymentNote);
+    applyContentText('[data-checkout-submit-label]', content.submitLabel);
+  }
+  if (page === 'account') {
+    applyContentText('[data-account-eyebrow]', content.eyebrow);
+    applyContentText('[data-account-title]', content.title);
+    applyContentText('[data-account-intro]', content.intro);
+    applyContentText('[data-account-submit-label]', content.submitLabel);
+    applyContentText('[data-account-switch-text]', content.switchText);
+    applyContentText('[data-account-switch-label]', content.switchLabel);
+  }
+  if (page === 'create-account') {
+    applyContentText('[data-create-account-eyebrow]', content.eyebrow);
+    applyContentText('[data-create-account-title]', content.title);
+    applyContentText('[data-create-account-intro]', content.intro);
+    applyContentText('[data-create-account-submit-label]', content.submitLabel);
+    applyContentText('[data-create-account-switch-text]', content.switchText);
+    applyContentText('[data-create-account-switch-label]', content.switchLabel);
+  }
+  if (page === 'about') {
+    applyContentText('[data-about-eyebrow]', content.eyebrow);
+    applyContentText('[data-about-title]', content.title);
+    applyContentText('[data-about-story-eyebrow]', content.storyEyebrow);
+    applyContentText('[data-about-story-title]', content.storyTitle);
+    applyContentText('[data-about-story-one]', content.storyOne);
+    applyContentText('[data-about-story-two]', content.storyTwo);
+    applyContentLink('[data-about-cta]', content.ctaLabel, content.ctaLink, 'Shop the complete collection', 'collections.html');
+  }
+}
+
 async function loadEditablePageContent() {
   const currentPage = location.pathname.split('/').pop() || 'index.html';
-  const page = currentPage === 'index.html' ? 'home' : currentPage === 'checkout.html' ? 'checkout' : '';
+  const page = pageKeyByFile[currentPage];
   if (!page) return;
   try {
     const snapshot = await getDoc(doc(db, 'siteContent', page));
     if (!snapshot.exists()) return;
     const content = snapshot.data();
-    if (page === 'home') {
-      applyContentText('[data-home-mark]', content.mark);
-      applyContentText('[data-home-eyebrow]', content.eyebrow);
-      applyContentText('[data-home-title-one]', content.titleLineOne);
-      applyContentText('[data-home-title-two]', content.titleLineTwo);
-      applyContentText('[data-home-intro]', content.intro);
-      applyContentLink('[data-home-primary]', content.primaryLabel, content.primaryLink, 'Shop the collection', 'collections.html');
-      applyContentLink('[data-home-secondary]', content.secondaryLabel, content.secondaryLink, 'Explore temple jewellery', 'collections.html?category=Temple+Necklaces');
-      applyContentText('[data-home-proof-one]', content.proofOne);
-      applyContentText('[data-home-proof-two]', content.proofTwo);
-      applyContentText('[data-home-caption-label]', content.captionLabel);
-      applyContentText('[data-home-caption-title]', content.captionTitle);
-      applyContentLink('[data-home-caption-link]', content.captionLinkLabel, content.captionLink, 'View the collection', 'collections.html');
-    }
-    if (page === 'checkout') {
-      applyContentText('[data-checkout-announcement]', content.announcement);
-      applyContentText('[data-checkout-eyebrow]', content.eyebrow);
-      applyContentText('[data-checkout-title]', content.title);
-      applyContentText('[data-checkout-delivery-title]', content.deliveryTitle);
-      applyContentText('[data-checkout-payment-title]', content.paymentTitle);
-      applyContentText('[data-checkout-payment-note]', content.paymentNote);
-      applyContentText('[data-checkout-submit-label]', content.submitLabel);
-    }
+    editablePageContent[page] = content;
+    applyStaticPageContent(page, content);
+    if (page === 'product' || page === 'cart') store?.setPageContent?.(page, content);
+    if (page === 'account-overview') renderAccountOverview(auth.currentUser);
   } catch (error) {
     // Existing page copy remains visible until content permissions are enabled.
   }
@@ -244,7 +301,7 @@ async function renderAccountOverview(user) {
     const profile = profileSnapshot.exists() ? profileSnapshot.data() : {};
     const orderSnapshot = await getDocs(query(collection(db, 'orders'), where('userId', '==', user.uid)));
     const orders = orderSnapshot.docs.map(order => ({ id:order.id, ...order.data() })).sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-    root.innerHTML = `<section class="overview-heading"><div><p class="eyebrow">Ruth Jewels account</p><h1>Welcome, ${escapeHtml(profile.firstName || user.displayName?.split(' ')[0] || 'there')}.</h1><p>${escapeHtml(user.email)}</p></div><button class="button button--secondary" type="button" data-sign-out>Sign out</button></section><section class="overview-grid"><article><span>01</span><h2>Your profile</h2><p>${escapeHtml(profile.fullName || user.displayName || '')}</p><p>${escapeHtml(profile.mobile || 'Mobile number not added')}</p></article><article><span>02</span><h2>Shopping bag</h2><p>${store?.getCart().reduce((sum,item)=>sum+item.quantity,0) || 0} pieces currently selected</p><a class="text-link" href="cart.html">View shopping bag â†’</a></article><article><span>03</span><h2>Order history</h2><p>${orders.length} ${orders.length === 1 ? 'order' : 'orders'} recorded</p></article></section><section class="order-history"><div class="section-heading"><div><p class="eyebrow">Your orders</p><h2>Order history</h2></div><a class="button button--primary" href="collections.html">Continue shopping</a></div>${orders.length ? orders.map(order => `<article class="order-record"><div><span>${escapeHtml(order.orderReference || order.id)}</span><h3>${escapeHtml(order.status || 'Order received').replaceAll('_',' ')}</h3></div><strong>${store.money(order.total || 0)}</strong><p>${order.items?.map(item => `${item.quantity} Ã— ${escapeHtml(item.name)}`).join(', ') || ''}</p></article>`).join('') : '<div class="empty-state"><h3>No orders yet.</h3><p>Your completed checkout requests will appear here.</p></div>'}</section>`;
+    root.innerHTML = `<section class="overview-heading"><div><p class="eyebrow">${escapeHtml(editableCopy('account-overview', 'eyebrow', 'Ruth Jewels account'))}</p><h1>${escapeHtml(editableCopy('account-overview', 'welcomePrefix', 'Welcome,'))} ${escapeHtml(profile.firstName || user.displayName?.split(' ')[0] || 'there')}.</h1><p>${escapeHtml(user.email)}</p></div><button class="button button--secondary" type="button" data-sign-out>Sign out</button></section><section class="overview-grid"><article><span>01</span><h2>Your profile</h2><p>${escapeHtml(profile.fullName || user.displayName || '')}</p><p>${escapeHtml(profile.mobile || 'Mobile number not added')}</p></article><article><span>02</span><h2>Shopping bag</h2><p>${store?.getCart().reduce((sum,item)=>sum+item.quantity,0) || 0} pieces currently selected</p><a class="text-link" href="cart.html">View shopping bag â†’</a></article><article><span>03</span><h2>Order history</h2><p>${orders.length} ${orders.length === 1 ? 'order' : 'orders'} recorded</p></article></section><section class="order-history"><div class="section-heading"><div><p class="eyebrow">Your orders</p><h2>${escapeHtml(editableCopy('account-overview', 'orderHeading', 'Order history'))}</h2></div><a class="button button--primary" href="collections.html">${escapeHtml(editableCopy('account-overview', 'orderAction', 'Continue shopping'))}</a></div>${orders.length ? orders.map(order => `<article class="order-record"><div><span>${escapeHtml(order.orderReference || order.id)}</span><h3>${escapeHtml(order.status || 'Order received').replaceAll('_',' ')}</h3></div><strong>${store.money(order.total || 0)}</strong><p>${order.items?.map(item => `${item.quantity} Ã— ${escapeHtml(item.name)}`).join(', ') || ''}</p></article>`).join('') : '<div class="empty-state"><h3>' + escapeHtml(editableCopy('account-overview', 'emptyTitle', 'No orders yet.')) + '</h3><p>' + escapeHtml(editableCopy('account-overview', 'emptyCopy', 'Your completed checkout requests will appear here.')) + '</p></div>'}</section>`;
     root.querySelector('[data-sign-out]')?.addEventListener('click', async () => { await signOut(auth); location.href='account.html'; });
   } catch (error) {
     root.innerHTML = `<div class="account-empty"><h1>Account setup needs attention.</h1><p>${escapeHtml(friendlyError(error))}</p></div>`;

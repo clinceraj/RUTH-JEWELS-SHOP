@@ -1,4 +1,4 @@
-const OWNER_APP_CACHE = 'ruth-owner-app-v4';
+const OWNER_APP_CACHE = 'ruth-owner-app-v5';
 const APP_SHELL = [
   'admin.html',
   'app.js',
